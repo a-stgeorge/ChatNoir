@@ -1,7 +1,10 @@
-package application;
+/**
+ * The front end part of the Chat Noir game. Runs the user interface, controls view and input.
+ * @author Aidan St. George and Tyler Graffam
+ * @version 1.1 - 5/12/2020
+ */
 
-import java.beans.PropertyChangeEvent;
-import java.lang.reflect.Array;
+package application;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -11,6 +14,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 
 
@@ -19,6 +23,7 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 	private Model chatModel;
 	private Button[][] arrays;
 	private Label feedback;
+	
 	@Override
 	public void start(Stage primaryStage) {
 		try {
@@ -34,19 +39,19 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 			primaryStage.setTitle(chatModel.getTitle());
 			root.setCenter(grid);
 			
-			arrays = new Button[23][];
-
-
+			arrays = new Button[21][];
+			grid.getColumnConstraints().add(new ColumnConstraints(40)); // Fix issue with first column having width 0
+			
 			for (int i = 0; i <= 10; i++)
 			{	
-				arrays[i] = new Button[i+1];
+				arrays[i] = new Button[i + 1];
 				for (int j = 0; j <= i; j++)
 				{	
 					arrays[i][j] = new Button();
 					arrays[i][j].setPrefWidth(80);
 					arrays[i][j].setOnAction(this); //e -> {chatModel.updateBoard(i,j);} );
 					//if (i%2==0)
-						grid.add(arrays[i][j], (11-i)+j*2, i, 2, 1);
+						grid.add(arrays[i][j], (10-i)+j*2, i, 2, 1);
 					//else
 						//grid.add(arrays[i][j], (11-i*2)+j+1, i, 2, 1);
 				}
@@ -58,11 +63,11 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 				arrays[20 - i] = new Button[i + 1];
 				for (int j = 0; j <= i; j++) 
 				{
-					arrays[i][j] = new Button();
-					arrays[i][j].setPrefWidth(80);
-					arrays[i][j].setOnAction(this);
+					arrays[20 - i][j] = new Button();
+					arrays[20 - i][j].setPrefWidth(80);
+					arrays[20 - i][j].setOnAction(this);
 					//if (i%2==0)
-						grid.add(arrays[i][j], (11-i)+j*2, 21-i, 20, 1);
+						grid.add(arrays[20 - i][j], (10-i)+j*2, 21-i, 2, 1);
 					//else
 						//grid.add(arrays[i][j], j*2+1, 21-i, 2, 1);
 				}
@@ -78,7 +83,7 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 		launch(args);
 	}
 
-
+/*
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName().equals("")) 
 		{
@@ -90,50 +95,66 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 		{
 		}
 
-	}
+	}*/
 
-		@Override
-		public void handle(ActionEvent event) {
-			System.out.println(event.getSource());
-
-//			for (int i = 0; i <= 10; i++)
-//			{	
-//				for (int j = 0; j <= i; j++)
-//				{	
-//					if (event.getSource() == arrays[i][j])
-//					{
-//						System.out.println("Button" + i + j);
-//						//chatModel.updateBoard(i, j);
-//					}
-//				}
-//			}
-			
-			for (int i = 0; i <= 10; i++)
+	@Override
+	public void handle(ActionEvent event) {
+		
+		
+		for (int i = 0; i < arrays.length; i++) {
+			for (int j = 0; j < arrays[i].length; j++) {
+				if (event.getSource() == arrays[i][j]) {
+					
+					System.out.println("Button: " + i + " " + j);
+					//chatModel.updateBoard(i, j);	
+					
+				}
+			}
+		}
+		
+		/*
+		for (int i = 0; i <= 10; i++)
+		{	
+			for (int j = 0; j <= i; j++)
 			{	
-				
-				for (int j = 0; j <= i; j++)
-				{	
-					if (event.getSource() == arrays[i][j])
-					{
-						System.out.println("Button" + i + j);
-					}
-				}
-			}
-			
-			
-			int column = 0;
-			for (int i = 9; i >= 0; i--) 
-			{ 
-				
-				for (int j = 0; j <= i; j++) 
+				if (event.getSource() == arrays[i][j])
 				{
-					if (event.getSource() == arrays[20-i][j])
-					{	column = 20-i;
-						System.out.println("Button" + column + j);
-					}	//chatModel.updateBoard(20-1, j);
+					System.out.println("Button" + i + j);
+					//chatModel.updateBoard(i, j);
 				}
 			}
-		}}
+		}
+		
+		for (int i = 0; i <= 10; i++)
+		{	
+			
+			for (int j = 0; j <= i; j++)
+			{	
+				if (event.getSource() == arrays[i][j])
+				{
+					System.out.println("Button " + i + " " + j);
+				}
+			}
+		}
+		
+		
+		int column = 0;
+		for (int i = 9; i >= 0; i--) 
+		{ 
+			
+			for (int j = 0; j <= i; j++) 
+			{
+				if (event.getSource() == arrays[20-i][j])
+				{	column = 20-i;
+					System.out.println("Button " + column + " " + j);
+				}	//chatModel.updateBoard(20-1, j);
+			}
+		}
+		*/
+		
+	}
+	
+}
 
 
 
