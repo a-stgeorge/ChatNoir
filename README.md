@@ -2,7 +2,7 @@
 
 COS216 final project to recreate the game Chat Noir. An online version can be found [here](http://www.onemorelevel.com/game/chat_noir).
 
-Note: currently under developement. Does not work.
+Note: currently under developement. Does work.
 
 ## Features
 - 11 x 11 hexagonal grid board
