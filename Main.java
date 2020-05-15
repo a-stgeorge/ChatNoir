@@ -26,7 +26,8 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 	private Model chatModel;
 	private Button[][] arrays;
 	private Label feedback;
-	
+	private Button Reset;
+
 	@Override
 	public void start(Stage primaryStage) {
 		try {
@@ -42,10 +43,13 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 			primaryStage.show();
 			primaryStage.setTitle(chatModel.getTitle());
 			root.setCenter(grid);
-			
+			Reset = new Button();
+			Reset.setOnAction(this);
+			//root.setBottom(Reset);
+			Reset.setText("Reset");
 			arrays = new Button[21][];
 			grid.getColumnConstraints().add(new ColumnConstraints(40)); // Fix issue with first column having width 0
-			
+			grid.add(Reset,  20,  0, 2, 1);
 			for (int i = 0; i <= 10; i++)
 			{	
 				arrays[i] = new Button[i + 1];
@@ -75,6 +79,7 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 
 			chatModel.initialize(); // Set up graph and set border and blocked vertices
 
+
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -100,7 +105,7 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 		if (evt.getPropertyName().equals("yes cat")) // Add new cat
 		{
 			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1]
-					.setStyle("-fx-font-size: 12px; -fx-text-fill: #ffffff; "
+					.setStyle("-fx-graphic-text-gap: 0; -fx-text-fill: #ffffff; "
 							+ "-fx-border-color: #000000; -fx-background-color: #000000");
 			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1].setText("~(^••^)");
 		}
@@ -113,21 +118,30 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 
 	@Override
 	public void handle(ActionEvent event) {
-		
-		
-		for (int i = 0; i < arrays.length; i++) {
-			for (int j = 0; j < arrays[i].length; j++) {
-				if (event.getSource() == arrays[i][j]) {
-					System.out.println("Button: " + i + " " + j);
-					chatModel.updateBoard(i, j);	
+
+		if (event.getSource() != Reset)
+		{
+			for (int i = 0; i < arrays.length; i++) {
+				for (int j = 0; j < arrays[i].length; j++) {
+					if (event.getSource() == arrays[i][j]) {
+						System.out.println("Button: " + i + " " + j);
+						chatModel.updateBoard(i, j);	
+					}
 				}
 			}
+
 		}
-		
+
+		else
+		{
+
+			for (int i = 0; i < arrays.length; i++) {
+				for (int j = 0; j < arrays[i].length; j++) {
+						arrays[i][j].setStyle("-fx-border-color: #ff0000; -fx-background-color: #ffffff");
+						arrays[i][j].setText("");
+					}
+			}
+			chatModel.initialize();
+		}
 	}
-	
 }
-
-
-
-
