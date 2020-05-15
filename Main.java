@@ -6,6 +6,9 @@
 
 package application;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -18,7 +21,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 
 
-public class Main extends Application implements EventHandler<ActionEvent> {
+public class Main extends Application implements EventHandler<ActionEvent>, PropertyChangeListener {
 	private GridPane grid;
 	private Model chatModel;
 	private Button[][] arrays;
@@ -28,6 +31,7 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 	public void start(Stage primaryStage) {
 		try {
 			chatModel = new Model();
+			chatModel.addPropertyChangeListener(this);
 			BorderPane root = new BorderPane();
 			Scene scene = new Scene(root,1000,800);
 			feedback = new Label(chatModel.getFeedback());
@@ -49,11 +53,9 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 				{	
 					arrays[i][j] = new Button();
 					arrays[i][j].setPrefWidth(80);
-					arrays[i][j].setOnAction(this); //e -> {chatModel.updateBoard(i,j);} );
-					//if (i%2==0)
-						grid.add(arrays[i][j], (10-i)+j*2, i, 2, 1);
-					//else
-						//grid.add(arrays[i][j], (11-i*2)+j+1, i, 2, 1);
+					arrays[i][j].setOnAction(this);
+					arrays[i][j].setStyle("-fx-border-color: #ff0000; -fx-background-color: #ffffff");
+					grid.add(arrays[i][j], (10-i)+j*2, i, 2, 1);
 				}
 			}
 
@@ -66,13 +68,12 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 					arrays[20 - i][j] = new Button();
 					arrays[20 - i][j].setPrefWidth(80);
 					arrays[20 - i][j].setOnAction(this);
-					//if (i%2==0)
-						grid.add(arrays[20 - i][j], (10-i)+j*2, 21-i, 2, 1);
-					//else
-						//grid.add(arrays[i][j], j*2+1, 21-i, 2, 1);
+					arrays[20 - i][j].setStyle("-fx-border-color: #ff0000; -fx-background-color: #ffffff");
+					grid.add(arrays[20 - i][j], (10-i)+j*2, 21-i, 2, 1);
 				}
 			}
 
+			chatModel.initialize(); // Set up graph and set border and blocked vertices
 
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -83,19 +84,32 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 		launch(args);
 	}
 
-/*
+	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (evt.getPropertyName().equals("")) 
+		if (evt.getPropertyName().equals("blocked")) 
 		{
+			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1]
+					.setStyle("-fx-border-color: #ff0000; -fx-background-color: #ff0000");
 		}
-		if (evt.getPropertyName().equals("")) 
+		if (evt.getPropertyName().equals("no cat")) // Remove old cat
 		{
+			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1]
+					.setStyle("-fx-border-color: #ff0000; -fx-background-color: #ffffff");
+			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1].setText("");
 		}
-		if (evt.getPropertyName().equals("")) 
+		if (evt.getPropertyName().equals("yes cat")) // Add new cat
 		{
+			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1]
+					.setStyle("-fx-font-size: 12px; -fx-text-fill: #ffffff; "
+							+ "-fx-border-color: #000000; -fx-background-color: #000000");
+			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1].setText("~(^••^)");
 		}
-
-	}*/
+		if (evt.getPropertyName().equals("feedback")) // Add new cat
+		{
+			feedback.setText(chatModel.getFeedback());
+		}
+		//chatModel.printVertices();
+	}
 
 	@Override
 	public void handle(ActionEvent event) {
@@ -104,53 +118,11 @@ public class Main extends Application implements EventHandler<ActionEvent> {
 		for (int i = 0; i < arrays.length; i++) {
 			for (int j = 0; j < arrays[i].length; j++) {
 				if (event.getSource() == arrays[i][j]) {
-					
 					System.out.println("Button: " + i + " " + j);
-					//chatModel.updateBoard(i, j);	
-					
+					chatModel.updateBoard(i, j);	
 				}
 			}
 		}
-		
-		/*
-		for (int i = 0; i <= 10; i++)
-		{	
-			for (int j = 0; j <= i; j++)
-			{	
-				if (event.getSource() == arrays[i][j])
-				{
-					System.out.println("Button" + i + j);
-					//chatModel.updateBoard(i, j);
-				}
-			}
-		}
-		
-		for (int i = 0; i <= 10; i++)
-		{	
-			
-			for (int j = 0; j <= i; j++)
-			{	
-				if (event.getSource() == arrays[i][j])
-				{
-					System.out.println("Button " + i + " " + j);
-				}
-			}
-		}
-		
-		
-		int column = 0;
-		for (int i = 9; i >= 0; i--) 
-		{ 
-			
-			for (int j = 0; j <= i; j++) 
-			{
-				if (event.getSource() == arrays[20-i][j])
-				{	column = 20-i;
-					System.out.println("Button " + column + " " + j);
-				}	//chatModel.updateBoard(20-1, j);
-			}
-		}
-		*/
 		
 	}
 	

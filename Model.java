@@ -1,8 +1,8 @@
 /**
  * The back end part of the Chat Noir game. Keeps track of positions, what is legal and what isn't,
  * and triggers game end.
- * Developed by Aidan St. George and Tyler Graffam
- * Version 1.0 - 5/11/2020
+ * @author Aidan St. George and Tyler Graffam
+ * @version 1.0 - 5/11/2020
  */
 
 package application;
@@ -17,6 +17,7 @@ public class Model {
 	/** A helper object to handle observer pattern behavior */
 	protected PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	
+	//TODO javadoc
 	private final int[] rowDiff = {-1, -1, 0, 0, 1, 1};
 	private final int[] upperColDiff = {-1, 0, -1, 1, 0, 1};
 	private final int[] middleColDiff = {-1, 0, -1, 1, 0, -1};
@@ -36,12 +37,12 @@ public class Model {
 	private Vertex catPosition;
 	
 	/**
-	 * Constructor for the model. 
+	 * Initializes a new model. Saves view from having to create new Model each game.
 	 * - Sets up the graph of vertices
 	 * - generates and checks random blocked vertices
 	 * - Initializes catPosition, catsTurn, and gameOver
 	 */
-	public Model() {
+	public void initialize() {
 		catsTurn = false;
 		gameOver = false;
 		vertices = new Vertex[21][];
@@ -50,14 +51,14 @@ public class Model {
 		for (int i = 0; i <= 10; i++) { // First half
 			vertices[i] = new Vertex[i + 1];
 			for (int j = 0; j <= i; j++) {
-				vertices[i][j] = new Vertex();
+				vertices[i][j] = new Vertex(i, j);
 			}
 		}
 		
 		for (int i = 9; i >= 0; i--) { // Second half
 			vertices[20 - i] = new Vertex[i + 1];
 			for (int j = 0; j <= i; j++) {
-				vertices[20 - i][j] = new Vertex();
+				vertices[20 - i][j] = new Vertex(20 - i, j);
 			}
 		}
 		
@@ -81,13 +82,12 @@ public class Model {
 		for (int j = 0; j <= 10; j++) { // Middle row
 			if (j == 0 || j == 10)
 				vertices[10][j].borderVertex = true;
-			// Adjacent vertices
 			for (int k = 0; k < 6; k++) {
 				try {
 					vertices[10][j].adjacentVertices.add(
 							vertices[10 + rowDiff[k]][j + middleColDiff[k]]);
 				} catch (IndexOutOfBoundsException e) {
-					// Don't add invalid vertices
+					
 				}
 			}
 		}
@@ -96,18 +96,18 @@ public class Model {
 			for (int j = 0; j <= i; j++) {
 				if (j == 0 || j == i)
 					vertices[20 - i][j].borderVertex = true;
-				// Adjacent vertices
 				for (int k = 0; k < 6; k++) {
 					try {
 						vertices[20 - i][j].adjacentVertices.add(
 								vertices[20 - i + rowDiff[k]][j + lowerColDiff[k]]);
 					} catch (IndexOutOfBoundsException e) {
-						// Don't add invalid vertices
+						
 					}
 				}
 			}
 		}
 		
+	
 		// Generate random blocked vertices
 		Random rand = new Random();
 		do {
@@ -119,12 +119,16 @@ public class Model {
 				} while (randCol >= vertices[randRow].length || vertices[randRow][randCol].blocked ||
 						vertices[randRow][randCol] == catPosition); // check validity of vertex to block
 				vertices[randRow][randCol].blocked = true;
+				pcs.firePropertyChange("blocked", randRow, randCol - 1);
 			}
 		} while (!canCatEscape());
 		
 		catPosition = vertices[10][5];
+		pcs.firePropertyChange("yes cat", 10, 5);
+		
 	}
 	
+	//TODO fix fire property changes
 	/**
 	 * Public method for View to call to update the model based on whose turn and validity of move.
 	 * Also updates turn based on success of move
@@ -132,7 +136,17 @@ public class Model {
 	 * @param j column of vertex to update
 	 */
 	public void updateBoard(int i, int j) {
+		if (catsTurn) {
+			pcs.firePropertyChange("no cat", catPosition.row, catPosition.col - 1);
+			moveCat(vertices[i][j]);
+			pcs.firePropertyChange("yes cat", i, j - 1);
+		} else {
+			setBlocked(vertices[i][j]);
+			pcs.firePropertyChange("blocked", i, j - 1);
+		}
 		
+		catsTurn = !catsTurn;
+		pcs.firePropertyChange("feedback", null, null);
 	}
 	
 	/**
@@ -143,7 +157,6 @@ public class Model {
 	 */
 	private boolean setBlocked(Vertex v) {
 		v.blocked = true;
-		
 		return false;
 	}
 	
@@ -154,6 +167,7 @@ public class Model {
 	 * @return success of change
 	 */
 	private boolean moveCat(Vertex v) {
+		catPosition = v;
 		return false;
 	}
 	
@@ -218,6 +232,7 @@ public class Model {
 		Vertex v = vertices[i][j];
 		for (int k = 0; k < v.adjacentVertices.size(); k++) {
 			v.adjacentVertices.get(k).blocked = true;
+			pcs.firePropertyChange("block", i, j);
 		}
 	}
 	
@@ -228,6 +243,9 @@ public class Model {
 	 * @version 1.0 - 5/11/2020
 	 */
 	private class Vertex {
+		
+		/** Int values that store the vertexes position in the storage matrix */
+		int col, row;
 		
 		/** Boolean used in model's canEscape() algorithm to keep track of visited vertices */
 		boolean visited;
@@ -241,22 +259,10 @@ public class Model {
 		/** List of all 2-6 vertices bordering this vertex */
 		ArrayList<Vertex> adjacentVertices;
 		
-		
-		//TODO remove if not used
-		/**
-		 * Constructs a vertex object from given 
-		 * @param border Whether this vertex is on the edge
-		 * @param adjVert list of bordering vertices
-		 */
-		public Vertex(boolean border, ArrayList<Vertex> adjVert) {
-			visited = false;
-			blocked = false;
-			borderVertex = border;
-			adjacentVertices = adjVert;
-		}
-		
-		public Vertex() {
+		public Vertex(int i, int j) {
 			adjacentVertices = new ArrayList<Vertex>();
+			row = i;
+			col = j;
 		}
 		
 	}
