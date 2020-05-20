@@ -7,6 +7,7 @@
 
 package application;
 
+import java.awt.Point;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
@@ -22,13 +23,10 @@ public class Model {
 	private final int[] upperColDiff = {-1, 0, -1, 1, 0, 1};
 	private final int[] middleColDiff = {-1, 0, -1, 1, 0, -1};
 	private final int[] lowerColDiff = {1, 0, -1, 1, 0, -1};
-	private int startingBlocked = 11;
+	private int startingBlocked = 7;
 
 	/** Boolean that stores who's turn it is */
 	private boolean catsTurn;
-
-	/** Boolean that triggers the end game */
-	private boolean gameOver;
 
 	/** Storage unit for the graph of vertices */
 	private Vertex[][] vertices;
@@ -46,7 +44,6 @@ public class Model {
 	 */
 	public void initialize() {
 		catsTurn = false;
-		gameOver = false;
 		vertices = new Vertex[21][];
 
 		// Set up ragged matrix of vertices
@@ -109,8 +106,10 @@ public class Model {
 			}
 		}
 
+		// Set Cat Position
 		catPosition = vertices[10][5];
-		pcs.firePropertyChange("yes cat", 10, 5-1);
+		pcs.firePropertyChange("cat", null, new Point(10, 5));
+		
 		// Generate random blocked vertices
 		Random rand = new Random();
 		do {
@@ -122,11 +121,9 @@ public class Model {
 				} while (randCol >= vertices[randRow].length || vertices[randRow][randCol].blocked ||
 						vertices[randRow][randCol] == catPosition); // check validity of vertex to block
 				vertices[randRow][randCol].blocked = true;
-				pcs.firePropertyChange("blocked", randRow, randCol - 1);
+				pcs.firePropertyChange("blocked", null, new Point(randRow, randCol));
 			}
 		} while (!canCatEscape());
-
-		
 
 		pcs.firePropertyChange("feedback", null, null);
 	}
@@ -139,23 +136,28 @@ public class Model {
 	 * @param j column of vertex to update
 	 */
 	public void updateBoard(int i, int j) {
-		if (catsTurn && !gameOver) {
+		if (catsTurn && !gameOver()) {
 			int oldCatRow = catPosition.row;
 			int oldCatCol = catPosition.col;
 			if (moveCat(vertices[i][j])) {
-				pcs.firePropertyChange("no cat", oldCatRow, oldCatCol - 1);
-				pcs.firePropertyChange("yes cat", i, j - 1);
+				if (j > oldCatCol) // determine whether to display right or left cat text
+					pcs.firePropertyChange("cat right", new Point(oldCatRow, oldCatCol), new Point(i, j));
+				else if (j < oldCatCol)
+					pcs.firePropertyChange("cat left", new Point(oldCatRow, oldCatCol), new Point(i, j));
+				else {
+					if ( (i > oldCatRow && i > 10) || (i < oldCatRow && i < 10) )
+						pcs.firePropertyChange("cat right", new Point(oldCatRow, oldCatCol), new Point(i, j));
+					else
+						pcs.firePropertyChange("cat left", new Point(oldCatRow, oldCatCol), new Point(i, j));				}
 				catsTurn = !catsTurn;
-				gameOver();
 				pcs.firePropertyChange("feedback", null, null);
 
 			}
-		} else if (!gameOver){
+		} else if (!gameOver()){
 			if(setBlocked(vertices[i][j]))
 			{
-				pcs.firePropertyChange("blocked", i, j - 1);
+				pcs.firePropertyChange("blocked", null, new Point(i, j));
 				catsTurn = !catsTurn;
-				gameOver();
 				pcs.firePropertyChange("feedback", null, null);	
 			}	
 		}
@@ -201,14 +203,14 @@ public class Model {
 /**
  *TODO
  */
-	private void gameOver() {
+	private boolean gameOver() {
 		if(catPosition.borderVertex == true|| canCatEscape() == false)
 		{	
-			gameOver = true;
+			return true;
 		}
 		else
 		{
-			gameOver = false;
+			return false;
 		}
 	}
 	
@@ -252,7 +254,7 @@ public class Model {
 	 * @return feedback string to display
 	 */
 	public String getFeedback() {
-		if (!gameOver) {
+		if (!gameOver()) {
 			if (catsTurn)
 				return "It's the cat's turn to move!";
 			else

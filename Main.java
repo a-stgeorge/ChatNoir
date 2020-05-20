@@ -6,6 +6,7 @@
 
 package application;
 
+import java.awt.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -34,8 +35,8 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 			chatModel = new Model();
 			chatModel.addPropertyChangeListener(this);
 			BorderPane root = new BorderPane();
-			Scene scene = new Scene(root,1000,800);
-			feedback = new Label(chatModel.getFeedback());
+			Scene scene = new Scene(root, 670,600);
+			feedback = new Label();
 			root.setTop(feedback);
 			grid = new GridPane();
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -78,6 +79,7 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 			}
 
 			chatModel.initialize(); // Set up graph and set border and blocked vertices
+			feedback.setText(chatModel.getFeedback());; // Must display label after model is initialized
 
 
 		} catch(Exception e) {
@@ -93,27 +95,34 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName().equals("blocked")) 
 		{
-			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1]
+			arrays[(int) ((Point)evt.getNewValue()).getX()][(int) ((Point)evt.getNewValue()).getY()]
 					.setStyle("-fx-border-color: #ff0000; -fx-background-color: #ff0000");
 		}
-		if (evt.getPropertyName().equals("no cat")) // Remove old cat
+		if (evt.getPropertyName().contains("cat")) // Remove old cat (.contains() to catch both "cat left" and "cat right")
 		{
-			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1]
+			if (evt.getOldValue() != null) { // Erase old position
+				arrays[(int) ((Point)evt.getOldValue()).getX()][(int) ((Point)evt.getOldValue()).getY()]
 					.setStyle("-fx-border-color: #ff0000; -fx-background-color: #ffffff");
-			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1].setText("");
-		}
-		if (evt.getPropertyName().equals("yes cat")) // Add new cat
-		{
-			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1]
-					.setStyle("-fx-graphic-text-gap: 0; -fx-text-fill: #ffffff; "
-							+ "-fx-border-color: #000000; -fx-background-color: #000000");
-			arrays[(int) evt.getOldValue()][(int) evt.getNewValue() + 1].setText("~(^••^)");
+				arrays[(int) ((Point)evt.getOldValue()).getX()][(int) ((Point)evt.getOldValue()).getY()].setText("");
+			}
+			arrays[(int) ((Point)evt.getNewValue()).getX()][(int) ((Point)evt.getNewValue()).getY()]
+					.setStyle("-fx-text-fill: #ffffff; -fx-border-color: #ff0000;"
+							+ "-fx-background-color: #000000");
+			
+			if (evt.getPropertyName().equals("cat left")) // Change text direction
+				arrays[(int) ((Point)evt.getNewValue()).getX()][(int) ((Point)evt.getNewValue()).getY()]
+						.setText("(^••^)~");
+			else
+				arrays[(int) ((Point)evt.getNewValue()).getX()][(int) ((Point)evt.getNewValue()).getY()]
+						.setText("~(^••^)");
 		}
 		if (evt.getPropertyName().equals("feedback")) // Add new cat
 		{
 			feedback.setText(chatModel.getFeedback());
 		}
-		//chatModel.printVertices();
+		if (evt.getPropertyName().equals("reset")) {
+			// TODO implement
+		}
 	}
 
 	@Override
@@ -124,7 +133,6 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 			for (int i = 0; i < arrays.length; i++) {
 				for (int j = 0; j < arrays[i].length; j++) {
 					if (event.getSource() == arrays[i][j]) {
-						System.out.println("Button: " + i + " " + j);
 						chatModel.updateBoard(i, j);	
 					}
 				}
