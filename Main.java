@@ -102,13 +102,13 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 		{
 			if (evt.getOldValue() != null) { // Erase old position
 				arrays[(int) ((Point)evt.getOldValue()).getX()][(int) ((Point)evt.getOldValue()).getY()]
-					.setStyle("-fx-border-color: #ff0000; -fx-background-color: #ffffff");
+						.setStyle("-fx-border-color: #ff0000; -fx-background-color: #ffffff");
 				arrays[(int) ((Point)evt.getOldValue()).getX()][(int) ((Point)evt.getOldValue()).getY()].setText("");
 			}
 			arrays[(int) ((Point)evt.getNewValue()).getX()][(int) ((Point)evt.getNewValue()).getY()]
 					.setStyle("-fx-text-fill: #ffffff; -fx-border-color: #ff0000;"
 							+ "-fx-background-color: #000000");
-			
+
 			if (evt.getPropertyName().equals("cat left")) // Change text direction
 				arrays[(int) ((Point)evt.getNewValue()).getX()][(int) ((Point)evt.getNewValue()).getY()]
 						.setText("(^••^)~");
@@ -121,7 +121,12 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 			feedback.setText(chatModel.getFeedback());
 		}
 		if (evt.getPropertyName().equals("reset")) {
-			// TODO implement
+			for (int i = 0; i < arrays.length; i++) {
+				for (int j = 0; j < arrays[i].length; j++) {
+					arrays[i][j].setStyle("-fx-border-color: #ff0000; -fx-background-color: #ffffff");
+					arrays[i][j].setText("");
+				}
+			}
 		}
 	}
 
@@ -137,19 +142,11 @@ public class Main extends Application implements EventHandler<ActionEvent>, Prop
 					}
 				}
 			}
-
 		}
 
 		else
 		{
-
-			for (int i = 0; i < arrays.length; i++) {
-				for (int j = 0; j < arrays[i].length; j++) {
-						arrays[i][j].setStyle("-fx-border-color: #ff0000; -fx-background-color: #ffffff");
-						arrays[i][j].setText("");
-					}
-			}
-			chatModel.initialize();
+			chatModel.reset();
 		}
 	}
 }
